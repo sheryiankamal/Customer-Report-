@@ -4,7 +4,7 @@ const connectionConfig = {
     host: 'localhost',      // Your MySQL host
     user: 'root',           // Your MySQL username
     password: 'kamal2002', // Your MySQL password
-    database: 'users'      // The name of your database
+    database: 'kamaldb'      // The name of your database
 };
 
 const connectToDb = async ()=>{

@@ -1,155 +1,20 @@
-//import React, { useEffect, useState } from "react";
-//import getAllUsers from "./curd.jsx";
-import {  useState } from 'react';
+import React, { useEffect, useState } from "react";
+import getAllUsers from "./curd.jsx";
 
 const Table = () => {
-  const initialCustomers = [
-  {
-    customerName: "Amit Sharma",
-    primaryNumber: "9876543210",
-    alternateNumber: "9123456789",
-    email: "amit.sharma@gmail.com",
-    loyaltyPoints: 1200,
-    country: "India",
-    state: "Delhi",
-    pincode: "110001",
-    company: "TechNova Pvt Ltd",
-    status: "Active",
-    updatedOn: "2026-01-20",
-  },
-  {
-    customerName: "Priya Verma",
-    primaryNumber: "9988776655",
-    alternateNumber: "8877665544",
-    email: "priya.verma@gmail.com",
-    loyaltyPoints: 850,
-    country: "India",
-    state: "Maharashtra",
-    pincode: "400001",
-    company: "CloudSoft Solutions",
-    status: "Inactive",
-    updatedOn: "2026-01-18",
-  },
-  {
-    customerName: "Rahul Mehta",
-    primaryNumber: "9090909090",
-    alternateNumber: "9191919191",
-    email: "rahul.mehta@gmail.com",
-    loyaltyPoints: 540,
-    country: "India",
-    state: "Gujarat",
-    pincode: "380001",
-    company: "FinEdge Corp",
-    status: "Active",
-    updatedOn: "2026-01-15",
-  },
-  {
-    customerName: "Neha Singh",
-    primaryNumber: "9567894321",
-    alternateNumber: "9456781234",
-    email: "neha.singh@gmail.com",
-    loyaltyPoints: 2300,
-    country: "India",
-    state: "Uttar Pradesh",
-    pincode: "226001",
-    company: "RetailPro",
-    status: "Active",
-    updatedOn: "2026-01-12",
-  },
-  {
-    customerName: "Rohit Kapoor",
-    primaryNumber: "9812345678",
-    alternateNumber: "9898989898",
-    email: "rohit.kapoor@gmail.com",
-    loyaltyPoints: 670,
-    country: "India",
-    state: "Haryana",
-    pincode: "122001",
-    company: "LogiChain Pvt Ltd",
-    status: "Pending",
-    updatedOn: "2026-01-10",
-  },
-  {
-    customerName: "Amit Sharma",
-    primaryNumber: "9876543210",
-    alternateNumber: "9123456789",
-    email: "amit.sharma@gmail.com",
-    loyaltyPoints: 1200,
-    country: "India",
-    state: "Delhi",
-    pincode: "110001",
-    company: "TechNova Pvt Ltd",
-    status: "Active",
-    updatedOn: "2026-01-20",
-  },
-  {
-    customerName: "Priya Verma",
-    primaryNumber: "9988776655",
-    alternateNumber: "8877665544",
-    email: "priya.verma@gmail.com",
-    loyaltyPoints: 850,
-    country: "India",
-    state: "Maharashtra",
-    pincode: "400001",
-    company: "CloudSoft Solutions",
-    status: "Inactive",
-    updatedOn: "2026-01-18",
-  },
-  {
-    customerName: "Rahul Mehta",
-    primaryNumber: "9090909090",
-    alternateNumber: "9191919191",
-    email: "rahul.mehta@gmail.com",
-    loyaltyPoints: 540,
-    country: "India",
-    state: "Gujarat",
-    pincode: "380001",
-    company: "FinEdge Corp",
-    status: "Active",
-    updatedOn: "2026-01-15",
-  },
-  {
-    customerName: "Neha Singh",
-    primaryNumber: "9567894321",
-    alternateNumber: "9456781234",
-    email: "neha.singh@gmail.com",
-    loyaltyPoints: 2300,
-    country: "India",
-    state: "Uttar Pradesh",
-    pincode: "226001",
-    company: "RetailPro",
-    status: "Active",
-    updatedOn: "2026-01-12",
-  },
-  {
-    customerName: "Rohit Kapoor",
-    primaryNumber: "9812345678",
-    alternateNumber: "9898989898",
-    email: "rohit.kapoor@gmail.com",
-    loyaltyPoints: 670,
-    country: "India",
-    state: "Haryana",
-    pincode: "122001",
-    company: "LogiChain Pvt Ltd",
-    status: "Pending",
-    updatedOn: "2026-01-10",
-  },
-];
 
-  const [dummyCustomers, setDummyCustomers] = useState(initialCustomers);
-
-  // const [users, setUsers] = useState([]);
-  // useEffect(()=>{
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const response = await getAllUsers();
-  //       setUsers(response);
-  //     } catch (error) {
-  //       console.error("Error fetching users:", error);
-  //     }
-  //   };
-  //   fetchUsers();
-  // }, []);
+  const [dummyCustomers, setDummyCustomers] = useState([]);
+  useEffect(()=>{
+    const fetchUsers = async () => {
+      try {
+        const response = await getAllUsers();
+        setDummyCustomers(response);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const [editingIndex, setEditingIndex] = useState(null);
   const [email, setEmail] = useState('');
@@ -201,8 +66,8 @@ const Table = () => {
             {dummyCustomers.map((c, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                     <td className="border px-3 py-2">{c.customerName}</td>
-                    <td className="border px-3 py-2">{c.primaryNumber}</td>
-                    <td className="border px-3 py-2">{c.alternateNumber}</td>
+                    <td className="border px-3 py-2">{c.Pc}</td>
+                    <td className="border px-3 py-2">{c.Ac}</td>
                     <td className="border px-3 py-2">{editingIndex == index ? (
                       <div>
                         <input className='px-3 py-2 border border-gray-500' onChange={(e)=>handleChange(e)} value={email}></input>
@@ -213,7 +78,7 @@ const Table = () => {
                     <td className="border px-3 py-2">{c.state}</td>
                     <td className="border px-3 py-2">{c.pincode}</td>
                     <td className="border px-3 py-2">{c.company}</td>
-                    <td className="border px-3 py-2">{c.status}</td>
+                    <td className="border px-3 py-2">{c.Status}</td>
                     <td className="border px-3 py-2">{c.updatedOn}</td>
                     <td className="border px-3 py-2">
                         {editingIndex === index ? (

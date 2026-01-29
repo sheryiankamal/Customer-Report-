@@ -1,25 +1,22 @@
-// const express = require('experss');
-// const app = express();
+const express = require('express');
+const app = express();
 
-const connectToDb = require('./config/db.js');
+const cors = require('cors')
 
-const runDatabaseOperations = async ()=> {
-    let connection;
-    try {
+const customerRouter = require('./routes/customer.route');
 
-        connection = await connectToDb();
-        // Example: Perform an INSERT query using parameterized queries to prevent SQL injection
-        const newUser = { name: 'John Doe', phone : '8770215266' };
-        const [insertResult] = await connection.execute('INSERT INTO users (name, phone) VALUES (?, ?)', [newUser.name, newUser.phone]);
-        console.log('User inserted with ID : ', insertResult.insertId);
+const corsOptions = {
+    origin: '*',
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+app.use('/api/customer', customerRouter);
+app.get('/', (req, res) => {
+    console.log('welcome')
+})
 
-    } catch (error) {
-        console.error('An error occurred during database operations:', error);
-    } finally {
-        if (connection) {
-            connection.end(); // Close the connection
-        }
-    }
-}
+app.listen(3000, (
+    console.log('running')
+));
 
-runDatabaseOperations();
