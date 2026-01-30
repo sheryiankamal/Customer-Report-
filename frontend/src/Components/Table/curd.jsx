@@ -5,8 +5,10 @@ const getAllUsers = async() => {
   return response.data;
 }
 
-// const saveEmail = async(email) =>{
-//   const re
-// }
+export const saveUpdate = async(customer) =>{
+  console.log(customer);
+  const response = await axios.put('http://localhost:3000/api/customer/savecustomer', customer)
+  return response.data;
+}
 
 export default getAllUsers
