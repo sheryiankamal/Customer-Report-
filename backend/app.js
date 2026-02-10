@@ -1,13 +1,16 @@
 const express = require('express');
 const app = express();
+const cookieParser= require('cookie-parser');
+app.use(cookieParser())
 
 const cors = require('cors')
 const customerRouter = require('./routes/customer.route');
 
 const corsOptions = {
-    origin: '*',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true       
 };
 
 app.use(cors(corsOptions));

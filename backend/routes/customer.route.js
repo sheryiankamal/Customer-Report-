@@ -1,35 +1,194 @@
-const express = require('express');
-const connectToDb = require('../config/db');
+const express = require("express");
+const connectToDb = require("../config/db");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
 
-// router.get(`/$id`, async(req, res)=>{
-//     try{
-        
-//     }catch (e){
-//         res.status(500).json({error: e.message});
-//     }
-// })
+router.get("/", async (req, res) => {
+  let connection;
+  try {
+    connection = await connectToDb();
+    const [rows] = await connection.execute(
+      "SELECT id, customerName, Pc, Ac, email, loyaltyPoints, country, state, pincode, company, Status, updatedOn, role FROM customer",
+    );
+    console.log(rows);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.log(error);
+  } finally {
+    // Always close/release connection if not using a managed pool
+    if (connection) await connection.end();
+  }
+});
 
-router.get('/', async (req, res)=>{
-    try {
-        const connection = await connectToDb();
-        const [users] = await connection.execute('select * from customer');
-        res.json(users);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+router.put("/savecustomer", async (req, res) => {
+  try {
+    console.log(req.body.customer.id, req.body.id);
+    const connection = await connectToDb();
+    const [result] = await connection.execute(
+      `UPDATE customer 
+       SET customerName = ?, 
+       Pc = ?, 
+       Ac = ?, 
+       loyaltyPoints = ?, 
+       country = ?, 
+       state = ?, 
+       pincode = ?, 
+       company = ?, 
+       Status = ?
+       WHERE id = ?`,
+      [
+        req.body.customer.customerName,
+        req.body.customer.Pc,
+        req.body.customer.Ac,
+        req.body.customer.loyaltyPoints,
+        req.body.customer.country,
+        req.body.customer.state,
+        req.body.customer.pincode,
+        req.body.customer.company,
+        req.body.customer.Status,
+        req.body.customer.id,
+      ],
+    );
+    const [rows] = await connection.execute(
+      "Select * from customer where id = ?",
+      [req.body.customer.id],
+    );
+    console.log(rows);
+
+    if (req.body.customer.role == "admin") {
+      const [noti] = await connection.execute(
+        "insert into notifications (user_id, message, type) values (?, ?, ?)",
+        [
+          req.body.customer.id,
+          "Your personal details were changed successfully",
+          "Details",
+        ],
+      );
+    } else {
+      const [noti] = await connection.execute(
+        "insert into notifications (user_id, message, type) values (?, ?, ?)",
+        [
+          req.body.customer.id,
+          "Your personal details were changed by backend successfully",
+          "Details",
+        ],
+      );
     }
-})
+    res.json("Updated Successfully");
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
 
-router.put('/savecustomer', async (req, res) => {
+router.post("/login", async (req, res) => {
+  let connection;
+  try {
+    connection = await connectToDb();
+    const { email, password } = req.body;
+    const [rows] = await connection.execute(
+      "SELECT * FROM customer where email = ?",
+      [email],
+    );
+
+    console.log(rows[0]);
+    console.log(rows.length);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    if (rows[0].password === password) {
+      const token = jwt.sign({ email }, "secret");
+      res.cookie("token", token, {
+        httpOnly: false,
+        secure: false,
+        sameSite: "lax",
+        maxAge: 3600000,
+      });
+      return res.status(200).json(rows[0]);
+    } else {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+  } catch (e) {
+    console.log("loggin in error", e);
+  }
+});
+
+router.get("/login", (req, res) => {
+  console.log(req.cookies.token);
+  const token = req.cookies.token;
+  jwt.verify(token, "secret", async (e, result) => {
+    console.log("res", result);
+    if (!e) {
+      const connection = await connectToDb();
+      const [rows] = await connection.execute(
+        "SELECT * FROM customer where email = ?",
+        [result.email],
+      );
+      res.status(200).json(rows[0]);
+    }
+  });
+});
+
+router.put("/saveUpdates", async (req, res) => {
+  console.log(req.body);
   try {
     const connection = await connectToDb();
     const [result] = await connection.execute(
-      'UPDATE customer SET email = ? WHERE customerName = ?',
-      [req.body.email, req.body.customerName]
+      "UPDATE customer SET state = ?, customerName= ? WHERE id = ?",
+      [req.body.state, req.body.name, req.body.id],
     );
-    res.json('Updated Successfully');
+    if (result[0].role === "admin") {
+      const [noti] = await connection.execute(
+        "insert into notifications (user_id, message, type) values (?, ?, ?)",
+        [
+          req.body.id,
+          "Your name and state was changed successfully",
+          "Details",
+        ],
+      );
+    }
+    console.log(result);
+    res.json({ success: true });
   } catch (e) {
-    res.json({'error' : e.message});
+    console.log(e);
+    res.json({ error: e.message });
+  }
+});
+
+router.put("/savePassword", async (req, res) => {
+  console.log(req.body);
+  try {
+    const connection = await connectToDb();
+    const [result] = await connection.execute(
+      "UPDATE customer SET password = ? WHERE id = ?",
+      [req.body.password, req.body.id],
+    );
+    if (result[0].role === "admin") {
+      const [noti] = await connection.execute(
+        "insert into notifications (user_id, message, type) values (?, ?, ?)",
+        [req.body.id, "Your password was changed successfully", "Security"],
+      );
+    }
+    console.log(result);
+    res.json({ success: true });
+  } catch (e) {
+    console.log(e);
+    res.json({ error: e.message });
+  }
+});
+
+router.get("/notifications/:user_id", async (req, res) => {
+  try {
+    const connection = await connectToDb();
+    const [rows] = await connection.execute(
+      "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC",
+      [req.params.user_id],
+    );
+    console.log(rows);
+    res.json(rows);
+  } catch (e) {
+    console.log(e);
   }
 });
 
