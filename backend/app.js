@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const cookieParser= require('cookie-parser');
+const path = require('path');
+
 app.use(cookieParser())
 
 const cors = require('cors')
@@ -17,6 +19,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/customer', customerRouter);
+app.use('/uploads', express.static("uploads"))
 
 app.get('/', (req, res) => {
     console.log('welcome')

@@ -54,4 +54,16 @@ export const getNotications= async(user_id)=>{
   return response.data;
 }
 
-export default getAllUsers
+export const sendMessage= async(rId, sId, m)=>{
+  const response = await axios.post('http://localhost:3000/api/customer/message', {rId, sId, m});
+  
+  return response.data;
+}
+
+export const getAllMsg = async(sId, rId)=>{
+  const response = await axios.get(`http://localhost:3000/api/customer/getMsg/${rId}/${sId}`);
+  console.log(response.data.rows)
+  return response.data.rows;
+}
+
+export default getAllUsers 

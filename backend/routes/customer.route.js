@@ -2,6 +2,20 @@ const express = require("express");
 const connectToDb = require("../config/db");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const multer = require('multer');
+const path = require('path');
+const fs=  require('fs');
+
+const storage = multer.diskStorage({
+  destination: function(req, file, cb){
+    cb(null, 'uploads/');
+  },
+  filename: function(req, file, cb){
+    cb(null, Date.now()+ path.extname(file.originalname));
+  },
+});
+
+const upload = multer({storage: storage});
 
 router.get("/", async (req, res) => {
   let connection;
@@ -191,5 +205,71 @@ router.get("/notifications/:user_id", async (req, res) => {
     console.log(e);
   }
 });
+
+router.post('/upload-profile', upload.single('profile'), async(req, res)=>{
+  console.log(req.body.userId)
+  //console.log(req.file);
+  try{
+    const connection = await connectToDb();
+    const imagePath = req.file.filename;
+    
+    const[rows] = await connection.execute(
+      'select * from customer where id = ?',
+      [req.body.userId],
+    )
+
+    const oldImage = rows[0]?.profileImage;
+
+    if(oldImage){
+      const oldImagePath = path.join(__dirname, '..' , 'uploads', oldImage);
+      if(fs.existsSync(oldImagePath)){
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+    
+    const result = await connection.execute(
+      "update customer set profileImage = ? where id = ?",
+      [imagePath, req.body.userId]
+    )
+    res.json({
+      message: 'Profile uploaded successfully',
+      image: imagePath,
+    });
+  }catch(e){
+    console.log(e)
+    res.status(500).json({
+      message: 'Upload failed',
+    })
+  }
+})
+
+router.post('/message', async(req, res)=>{
+  const {rId, sId, m} = req.body;
+  try{
+    const connection = await connectToDb();
+    const [result] = await connection.execute(
+      'insert into messages (sender_id, receiver_id, message) values (?, ?, ?)',
+      [sId, rId, m]
+    );
+    res.json({'msg': 'successful'});
+  }catch(e){
+    console.log(e);
+  }
+})
+
+router.get('/getMsg/:sId/:rId', async(req, res)=>{
+  try{
+    const connection = await connectToDb();
+    const [rows]= await connection.execute(
+      "select * from messages where (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+      [req.params.sId, req.params.rId, req.params.rId, req.params.sId]
+    )
+    console.log('m', rows);
+    res.json({rows});
+  }catch(e){
+    res.json({'rows':'No chats'});
+    console.log(e);
+  }
+})
 
 module.exports = router;
