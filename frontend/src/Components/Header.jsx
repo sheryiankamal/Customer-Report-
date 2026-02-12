@@ -45,6 +45,7 @@ const Header = () => {
     if (!showChat || !selectedAdmin) return;
 
     const fetchMessages = async () => {
+      console.log("setInterval called!")
       const msgs = await getAllMsg(user.id, selectedAdmin);
       setAllMsg(msgs);
     };
@@ -144,7 +145,7 @@ const Header = () => {
           )}
 
           {showChat && (
-            <div className="absolute right-0 top-15 w-80 h-100 bg-white text-black rounded-xl shadow-xl flex flex-col border">
+            <div className="absolute right-0 top-30 w-80 h-100 bg-white text-black rounded-xl shadow-xl flex flex-col border">
             
               <div className="bg-blue-500 text-white px-4 py-3 rounded-t-xl flex justify-between">
                 <h2 className="font-semibold">{admin?.customerName}</h2>

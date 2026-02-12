@@ -258,8 +258,9 @@ router.post('/message', async(req, res)=>{
 })
 
 router.get('/getMsg/:sId/:rId', async(req, res)=>{
+  let connection;
   try{
-    const connection = await connectToDb();
+    connection = await connectToDb();
     const [rows]= await connection.execute(
       "select * from messages where (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
       [req.params.sId, req.params.rId, req.params.rId, req.params.sId]
@@ -269,7 +270,16 @@ router.get('/getMsg/:sId/:rId', async(req, res)=>{
   }catch(e){
     res.json({'rows':'No chats'});
     console.log(e);
+  }finally {
+  if (connection) {
+    try{
+      await connection.end();
+      console.log('closed')
+    }catch(e){
+      console.log(e);
+    }
   }
+}
 })
 
 module.exports = router;

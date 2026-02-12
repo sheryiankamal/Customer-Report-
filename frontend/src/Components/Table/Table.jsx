@@ -141,7 +141,7 @@ const Table = () => {
         />
       ) : user?.role == "admin" ? (
         <div className="w-full border rounded-sm border-gray-600 overflow-auto">
-          <div className="flex items-center justify-between w-100 gap-2 sticky left-0 bg-white">
+          <div className="flex items-center justify-between w-100 gap-2 sticky left-0 bg-white z-0">
             <h1 className="text-nowrap ml-2 font-semibold text-lg text-gray-700">
               Search Customer
             </h1>
@@ -152,7 +152,7 @@ const Table = () => {
             />
           </div>
           <table className="w-full border ">
-            <thead className="bg-gray-100 sticky top-0 ">
+            <thead className="bg-gray-100 sticky top-0 -z-1">
               <tr className="">
                 <th className="border border-gray-300 px-3 py-2 text-left">
                   <div className="flex gap-1">
