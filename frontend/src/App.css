@@ -3,3 +3,39 @@
 body {
   font-family: 'Lato', sans-serif;
 }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 999;
+}
+
+.notification {
+  color: black;
+  background-color: white;
+  width: 330px;
+  height: 100%;
+  padding: 10px;
+}
+
+.notification-in {
+  animation: slide-in 1s ease forwards;
+}
+
+.notification-out {
+  animation: slide-out 1s ease  forwards;
+}
+
+
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}

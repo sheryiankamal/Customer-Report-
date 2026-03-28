@@ -175,10 +175,13 @@ router.put("/savePassword", async (req, res) => {
   try {
     const connection = await connectToDb();
     const [result] = await connection.execute(
-      "UPDATE customer SET password = ? WHERE id = ?",
-      [req.body.password, req.body.id],
+      "UPDATE customer SET password = ?, Status = ? WHERE id = ?",
+      [req.body.password, 'Active', req.body.id],
     );
-    if (result[0].role === "admin") {
+    const [rows] = await connection.execute(
+      'select * from customer where id = ?', [req.body.id],
+    )
+     if (rows[0].role === "admin") {
       const [noti] = await connection.execute(
         "insert into notifications (user_id, message, type) values (?, ?, ?)",
         [req.body.id, "Your password was changed successfully", "Security"],
@@ -191,6 +194,26 @@ router.put("/savePassword", async (req, res) => {
     res.json({ error: e.message });
   }
 });
+
+router.put("/checkPassword", async (req, res) => {
+  console.log(req.body);
+  try {
+    const connection = await connectToDb();
+    const [rows] = await connection.execute(
+      "select * from customer where password = ? and id = ?",
+      [req.body.oldPassword, req.body.id],
+    );
+    if(rows.length === 0 ){
+      res.json({success : false});
+    }
+    console.log(rows);
+    res.json({ success: true });
+  } catch (e) {
+    console.log(e);
+    res.json({ error: e.message });
+  }
+});
+
 
 router.get("/notifications/:user_id", async (req, res) => {
   try {
@@ -280,6 +303,20 @@ router.get('/getMsg/:sId/:rId', async(req, res)=>{
     }
   }
 }
+})
+
+router.put('/reset', async (req, res)=>{
+  let connection;
+  try{
+    connection = await connectToDb();
+    const [rows] = await connection.execute(
+      'update customer set Status = ? where id = ?', ['Inactive', req.body.id]
+    );
+    res.json({success: true});
+  }catch (e){
+    console.log(e)
+    res.send(e);
+  }
 })
 
 module.exports = router;

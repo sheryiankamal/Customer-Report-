@@ -5,6 +5,8 @@ import { Logout, getAllMsg, getNotications, sendMessage } from "../api/curd";
 import getAllUsers from "../api/curd";
 import { logout } from "../store/slice/authSlice";
 import { useSelector, useDispatch } from "react-redux";
+import Noti from "./Noti";
+import Chatbox from "./Chatbox";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -21,7 +23,6 @@ const Header = () => {
   const [message, setMessage] = useState("");
   const [allMsg, setAllMsg] = useState([]);
 
-  // Initial Data Fetch
   useEffect(() => {
     if (!user?.id) return;
 
@@ -40,12 +41,11 @@ const Header = () => {
     fetchData();
   }, [user]);
 
-  // Polling for messages
   useEffect(() => {
     if (!showChat || !selectedAdmin) return;
 
     const fetchMessages = async () => {
-      console.log("setInterval called!")
+      console.log("setInterval called!");
       const msgs = await getAllMsg(user.id, selectedAdmin);
       setAllMsg(msgs);
     };
@@ -84,20 +84,17 @@ const Header = () => {
   return (
     <div className="flex items-center justify-between px-5 py-3 w-full h-20 bg-gray-700 text-white sticky top-0">
       <h1 className="font-bold text-xl">Customer Report</h1>
-
       {isAuthenticated && (
-        <div className="flex items-center gap-4 relative">
-          {/* Help Button */}
+        user.Status === 'Active' && 
+        <div className="flex items-center gap-4">
           <button
             onClick={() => setHelp(!help)}
             className="bg-blue-500 px-3 py-1 rounded"
           >
             {user.role === "admin" ? "Chats" : "Ask for Help"}
           </button>
-
-          {/* Admin Selection */}
           {help && (
-            <div className="absolute right-0 top-55 bg-white text-black p-4 rounded shadow w-64">
+            <div className="absolute right-0 top-20 bg-white text-black p-4 rounded shadow w-64">
               <label className="text-sm font-semibold">Choose Admin</label>
 
               <select
@@ -112,7 +109,7 @@ const Header = () => {
                   {user.role == "customer" ? (
                     <div>select admins</div>
                   ) : (
-                    <div>select admins or customer</div>
+                    <div className="">select admins or customer</div>
                   )}
                 </option>
                 {customers
@@ -144,72 +141,19 @@ const Header = () => {
             </div>
           )}
 
-          {showChat && (
-            <div className="absolute right-0 top-30 w-80 h-100 bg-white text-black rounded-xl shadow-xl flex flex-col border">
-            
-              <div className="bg-blue-500 text-white px-4 py-3 rounded-t-xl flex justify-between">
-                <h2 className="font-semibold">{admin?.customerName}</h2>
-                <button onClick={() => setShowChat(false)}>✕</button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 bg-gray-100 space-y-2">
-                {allMsg.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex ${
-                      msg.sender_id === user.id
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`px-3 py-2 rounded-lg max-w-xs ${
-                        msg.sender_id === user.id
-                          ? "bg-blue-500 text-white"
-                          : "bg-white border"
-                      }`}
-                    >
-                      {msg.message}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2 p-3 border-t">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type message..."
-                  className="flex-1 border rounded px-3 py-2"
-                />
-                <button
-                  onClick={handleSend}
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Notifications */}
-          <FaBell onClick={() => setBell(!bell)} className="cursor-pointer" />
-
+          {showChat && <Chatbox allMsg={allMsg} admin={admin} setShowChat={setShowChat} message={message} setMessage={setMessage} handleSend={handleSend} />}
+          <FaBell onClick={() => setBell(true)} className="cursor-pointer" />
           {bell && (
-            <div className="absolute right-0 top-50 bg-white w-90 text-black px-3 py-2 rounded shadow">
-              {notifications.length === 0 ? (
-                <p>No notifications</p>
-              ) : (
-                notifications.map((n) => (
-                  <p key={n.id} className="text-sm">
-                    {n.message}
-                  </p>
-                ))
-              )}
+            <div className="">
+            
+              <Noti notifications={notifications} setBell={setBell} />
             </div>
           )}
-
-          {/* Profile */}
-          <div className="relative">
+        
+        </div>
+        
+      )}
+      <div className="">
             <img
               onClick={() => setOpen(!open)}
               className="h-10 w-10 rounded object-cover cursor-pointer"
@@ -217,7 +161,7 @@ const Header = () => {
               alt="profile"
             />
             {open && (
-              <div className="w-20 absolute -right-4 top-8 bg-white text-black p-2 rounded shadow text-sm flex flex-col gap-1">
+              <div className="w-20 absolute right-0 top-15 bg-white text-black p-2 rounded shadow text-sm flex flex-col gap-1">
                 <Link to="/profile">Profile</Link>
                 <Link to="/setting">Setting</Link>
                 <p onClick={handleLogout} className="cursor-pointer">
@@ -226,8 +170,6 @@ const Header = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
     </div>
   );
 };

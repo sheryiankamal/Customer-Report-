@@ -19,8 +19,7 @@ export const Login = async(email, password)=>{
     console.log(response);
     return response.data;
   }catch(e){
-    console.log(e);
-    return false;
+    console.log(e)
   }
 }
 
@@ -64,6 +63,16 @@ export const getAllMsg = async(sId, rId)=>{
   const response = await axios.get(`http://localhost:3000/api/customer/getMsg/${rId}/${sId}`);
   console.log(response.data.rows)
   return response.data.rows;
+}
+
+export const checkPassword= async(oldPassword, id)=>{
+  const response= await axios.put('http://localhost:3000/api/customer/checkPassword', {oldPassword, id});
+  return response.data.success;
+}
+
+export const reset= async(id)=>{
+  const res= await axios.put('http://localhost:3000/api/customer/reset', {id});
+  console.log(res)
 }
 
 export default getAllUsers 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import getAllUsers from "../../api/curd.js";
+import getAllUsers, { reset } from "../../api/curd.js";
 import { saveUpdate, Login, checkLogin } from "../../api/curd.js";
 import { FiArrowUp, FiArrowDown } from "react-icons/fi";
 import LoginPage from "../../Pages/Login.jsx";
@@ -13,7 +13,7 @@ const Table = () => {
 
   const [search, setSearch] = useState("");
   const [dummyCustomers, setDummyCustomers] = useState([]);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [editedCustomer, setEditedCustomer] = useState(null);
   //const [company, setCompany] = useState("");
   const [sortType, setSortType] = useState("");
@@ -42,30 +42,34 @@ const Table = () => {
 
   const handleChange = (e, f) => {
     //setCompany(e.target.value);
-    setEditedCustomer({...editedCustomer, [f]: e.target.value});
+    setEditedCustomer({ ...editedCustomer, [f]: e.target.value });
   };
 
-  const handleEdit = (e, index) => {
+  const handleEdit = (e, id) => {
     e.preventDefault();
-    setEditingIndex(index);
-    console.log(index);
-    setEditedCustomer({...dummyCustomers[index]})
+    setEditingId(id);
+    console.log(id);
+    const customerToEdit = dummyCustomers.find(
+    (customer) => customer.id === id
+  );
+  setEditedCustomer({ ...customerToEdit });
     //setCompany(dummyCustomers[index].company);
   };
 
-  const handleSave = async (e, index) => {
+  const handleSave = async (e, id) => {
     e.preventDefault();
-    const updatedCustomers = [...dummyCustomers];
-    updatedCustomers[index] = editedCustomer;
+    const updatedCustomers = dummyCustomers.map((customer) =>
+      customer.id === id ? editedCustomer : customer,
+    );
     setDummyCustomers(updatedCustomers);
     const res = await saveUpdate(editedCustomer, user.id);
     console.log(res);
-    setEditingIndex(null);
-    setEditedCustomer(null)
+    setEditingId(null);
+    setEditedCustomer(null);
   };
 
   const handleCancel = () => {
-    setEditingIndex(null);
+    setEditingId(null);
   };
 
   const data = useMemo(() => {
@@ -107,26 +111,36 @@ const Table = () => {
     try {
       const user = await Login(Email, password);
       console.log(user);
-      dispatach(login(user));
+      if (user) dispatach(login(user));
+     
     } catch (e) {
       console.log(e);
       setError("Invalid Email or Password");
     }
   };
 
-  const renderEditableCell = (value, field, index) => {
-  if (editingIndex === index && field !== "email" && field !== "updatedOn") {
-    return (
-      <input
-        className="border px-2 py-1"
-        value={editedCustomer[field]}
-        onChange={(e) => handleChange(e, field)}
-      />
-    );
+  const handleReset =async (id)=>{
+    await reset(id);
   }
-  return value;
-};
 
+  const renderEditableCell = (value, field, id) => {
+    if (editingId === id && field !== "email" && field !== "updatedOn") {
+      return (
+        <input
+          className="border px-2 py-1"
+          value={editedCustomer[field]}
+          onChange={(e) => handleChange(e, field)}
+        />
+      );
+    }
+    return value;
+  };
+
+  const renderResetCell = (value, field, id) => {
+      return (
+        <button onClick={()=>handleReset(id)} className="text-sm text-nowrap">{value}</button>
+      );
+  };
 
   return (
     <div>
@@ -141,7 +155,7 @@ const Table = () => {
         />
       ) : user?.role == "admin" ? (
         <div className="w-full border rounded-sm border-gray-600 overflow-auto">
-          <div className="flex items-center justify-between w-100 gap-2 sticky left-0 bg-white z-0">
+          <div className="flex items-center justify-between w-100 gap-2 bg-white">
             <h1 className="text-nowrap ml-2 font-semibold text-lg text-gray-700">
               Search Customer
             </h1>
@@ -152,7 +166,7 @@ const Table = () => {
             />
           </div>
           <table className="w-full border ">
-            <thead className="bg-gray-100 sticky top-0 -z-1">
+            <thead className="bg-gray-100">
               <tr className="">
                 <th className="border border-gray-300 px-3 py-2 text-left">
                   <div className="flex gap-1">
@@ -245,22 +259,43 @@ const Table = () => {
             <tbody>
               {data.map((c, index) => (
                 <tr key={index} className="hover:bg-gray-200">
-                  <td className="border px-3 py-2">{renderEditableCell(c.customerName, "customerName", index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.Pc, "Pc", index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.Ac, 'Ac', index)}</td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.customerName, "customerName", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.Pc, "Pc", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.Ac, "Ac", c.id)}
+                  </td>
                   <td className="border px-3 py-2">{c.email}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.loyaltyPoints, 'loyaltyPoints', index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.country, "country", index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.state, 'state', index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.pincode, 'pincode', index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.company, 'company', index)}</td>
-                  <td className="border px-3 py-2">{renderEditableCell(c.Status, 'Status', index)}</td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.loyaltyPoints, "loyaltyPoints", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.country, "country", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.state, "state", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.pincode, "pincode", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.company, "company", c.id)}
+                  </td>
+                  <td className="border px-3 py-2">
+                    {renderEditableCell(c.Status, "Status", c.id)}
+                  </td>
                   <td className="border px-3 py-2">{c.updatedOn}</td>
                   <td className="border px-3 py-2">
-                    {editingIndex === index ? (
+                     {renderResetCell('Reset Password', 'resetPassword', c.id)}
+                    </td>
+                  <td className="border px-3 py-2">
+                    {editingId === c.id ? (
                       <div className="flex items-center justify-between">
                         <button
-                          onClick={(e) => handleSave(e, index)}
+                          onClick={(e) => handleSave(e, c.id)}
                           className="bg-green-500 text-white px-2 py-1 rounded mr-2"
                         >
                           Save
@@ -274,7 +309,7 @@ const Table = () => {
                       </div>
                     ) : (
                       <button
-                        onClick={(e) => handleEdit(e, index)}
+                        onClick={(e) => handleEdit(e, c.id)}
                         className="bg-blue-400 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
                       >
                         Edit
@@ -287,12 +322,20 @@ const Table = () => {
           </table>
         </div>
       ) : (
-        user && (
-          <div>
+        user.role ==='customer' && (
+          user.Status ==='Active'? (
+            <div>
             <h1 className="text-center font-semibold mt-10 text-[20px] text-blue-500">
               Welcome to the profile!
             </h1>
           </div>
+          ) : (
+            <div>
+            <h1 className="text-center font-semibold mt-10 text-[20px] text-blue-500">
+              reset your password!
+            </h1>
+          </div>
+          )
         )
       )}
     </div>
